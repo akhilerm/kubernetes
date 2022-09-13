@@ -23,7 +23,7 @@ import (
 	"net"
 
 	"github.com/spf13/pflag"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
+	otlpgrpc "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/semconv"
 	"google.golang.org/grpc"
