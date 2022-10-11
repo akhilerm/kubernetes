@@ -77,7 +77,7 @@ var _ = SIGDescribe("Keystone Containers [Feature:KeystoneContainers]", func() {
 					}
 				}
 				return false
-			}, 10*time.Second).Should(gomega.BeTrue())
+			}, time.Minute).Should(gomega.BeTrue())
 
 		})
 
