@@ -71,6 +71,7 @@ var _ = SIGDescribe("Keystone Containers [Feature:KeystoneContainers]", func() {
 			gomega.Eventually(func() bool {
 				j, err = jobClient.Get(context.TODO(), j.Name, metav1.GetOptions{})
 				framework.ExpectNoError(err, "error while getting job")
+				framework.Logf("Job : %+v", j)
 				for _, c := range j.Status.Conditions {
 					if c.Type == batchv1.JobComplete && c.Status == v1.ConditionTrue {
 						return true
