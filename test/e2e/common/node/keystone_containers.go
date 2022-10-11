@@ -76,6 +76,7 @@ var _ = SIGDescribe("Keystone Containers [Feature:KeystoneContainers]", func() {
 					if c.Type == batchv1.JobComplete && c.Status == v1.ConditionTrue {
 						return true
 					}
+					time.Sleep(5 * time.Second)
 				}
 				return false
 			}, time.Minute).Should(gomega.BeTrue())
