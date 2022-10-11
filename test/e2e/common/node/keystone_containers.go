@@ -18,6 +18,7 @@ package node
 
 import (
 	"context"
+	"time"
 
 	batchv1 "k8s.io/api/batch/v1"
 	v1 "k8s.io/api/core/v1"
@@ -34,7 +35,7 @@ var _ = SIGDescribe("Keystone Containers [Feature:KeystoneContainers]", func() {
 
 	ginkgo.Context("When creating a job with two containers", func() {
 
-		ginkgo.It("should complete the job once the keystone container exits successfully", func() {
+		ginkgo.It("should complete the job once the keystone container exits successfully [Keystone]", func() {
 			jobClient := f.ClientSet.BatchV1().Jobs(f.Namespace.Name)
 			job := &batchv1.Job{
 				ObjectMeta: metav1.ObjectMeta{
@@ -76,7 +77,7 @@ var _ = SIGDescribe("Keystone Containers [Feature:KeystoneContainers]", func() {
 					}
 				}
 				return false
-			}).Should(gomega.BeTrue())
+			}, 10*time.Second).Should(gomega.BeTrue())
 
 		})
 
