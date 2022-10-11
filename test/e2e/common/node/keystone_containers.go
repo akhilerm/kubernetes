@@ -37,6 +37,7 @@ var _ = SIGDescribe("Keystone Containers [Feature:KeystoneContainers]", func() {
 
 		ginkgo.It("should complete the job once the keystone container exits successfully [Keystone]", func() {
 			jobClient := f.ClientSet.BatchV1().Jobs(f.Namespace.Name)
+			podClient := f.PodClient()
 			job := &batchv1.Job{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "test-job",
@@ -65,6 +66,9 @@ var _ = SIGDescribe("Keystone Containers [Feature:KeystoneContainers]", func() {
 
 			j, err := jobClient.Create(context.TODO(), job, metav1.CreateOptions{})
 			framework.ExpectNoError(err, "error while creating the job")
+
+			p, err := podClient.List(context.TODO(), metav1.ListOptions{})
+			framework.ExpectNotEqual(len(p.Items), 0)
 
 			// it is expected that the pod succeeds and the job should have a completed
 			// status eventually even if the sidecar container has not terminated in the pod
