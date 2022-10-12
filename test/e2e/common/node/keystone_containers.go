@@ -26,7 +26,7 @@ import (
 	"k8s.io/kubernetes/test/e2e/framework"
 	imageutils "k8s.io/kubernetes/test/utils/image"
 
-	"github.com/onsi/ginkgo/v2"
+	ginkgo "github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 )
 
@@ -45,6 +45,7 @@ var _ = SIGDescribe("Keystone Containers [Feature:KeystoneContainers]", func() {
 				Spec: batchv1.JobSpec{
 					Template: v1.PodTemplateSpec{
 						Spec: v1.PodSpec{
+							NodeName:      framework.TestContext.NodeName,
 							RestartPolicy: v1.RestartPolicyOnFailure,
 							Containers: []v1.Container{
 								// the main container should exit before the sidecar with 0 exit code
@@ -67,8 +68,13 @@ var _ = SIGDescribe("Keystone Containers [Feature:KeystoneContainers]", func() {
 			j, err := jobClient.Create(context.TODO(), job, metav1.CreateOptions{})
 			framework.ExpectNoError(err, "error while creating the job")
 
-			p, err := podClient.List(context.TODO(), metav1.ListOptions{})
-			framework.ExpectNotEqual(len(p.Items), 0)
+			j, err = jobClient.Get(context.TODO(), j.Name, metav1.GetOptions{})
+			framework.Logf("Job : %+v", j)
+
+			gomega.Eventually(func() int {
+				p, _ := podClient.List(context.TODO(), metav1.ListOptions{})
+				return len(p.Items)
+			}, 2*time.Minute).Should(gomega.Not(gomega.BeZero()))
 
 			// it is expected that the pod succeeds and the job should have a completed
 			// status eventually even if the sidecar container has not terminated in the pod
