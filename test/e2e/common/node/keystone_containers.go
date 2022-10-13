@@ -17,6 +17,7 @@ limitations under the License.
 package node
 
 import (
+	"context"
 	"fmt"
 	"github.com/onsi/ginkgo/v2"
 	v1 "k8s.io/api/core/v1"
@@ -68,7 +69,9 @@ var _ = SIGDescribe("Keystone Containers [Feature:KeystoneContainers]", func() {
 			podClient.Create(pod)
 			// the pod should succeed when the main container exits
 			podClient.WaitForSuccess(podName, framework.PodStartTimeout)
-
+			p, err := podClient.Get(context.TODO(), podName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			framework.Logf("pod %+v", p)
 			/*////
 						p, err := podClient.List(context.TODO(), metav1.ListOptions{})
 						framework.ExpectNotEqual(len(p.Items), 0)
