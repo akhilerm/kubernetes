@@ -17,11 +17,8 @@ limitations under the License.
 package node
 
 import (
-	"bytes"
-	"context"
 	"fmt"
 	"github.com/onsi/ginkgo/v2"
-	"io"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/uuid"
@@ -54,7 +51,7 @@ var _ = SIGDescribe("Keystone Containers [Feature:KeystoneContainers]", func() {
 						{
 							Name:    "main-container",
 							Image:   imageutils.GetE2EImage(imageutils.BusyBox),
-							Command: []string{"sh", "-c", "sleep 60 && exit 0"},
+							Command: []string{"sh", "-c", "sleep 10 && exit 0"},
 							Lifecycle: &v1.Lifecycle{
 								Type: &keystone,
 							},
@@ -68,46 +65,11 @@ var _ = SIGDescribe("Keystone Containers [Feature:KeystoneContainers]", func() {
 				},
 			}
 
+			// create the pod and wait for it to be in running state
 			podClient.CreateSync(pod)
-
-			logReq := podClient.GetLogs(podName, &v1.PodLogOptions{
-				Container: "main-container",
-			})
-			logs, err := logReq.Stream(context.TODO())
-			framework.ExpectNoError(err)
-			defer logs.Close()
-			buf := new(bytes.Buffer)
-			_, err = io.Copy(buf, logs)
-			framework.ExpectNoError(err)
-			str := buf.String()
-			framework.Logf("LOOOOOGS %s", str)
-
-			p, err := podClient.Get(context.TODO(), podName, metav1.GetOptions{})
-			framework.ExpectNoError(err)
-			framework.Logf("PODDDDDD %+v", p)
 
 			// the pod should succeed when the main container exits
 			podClient.WaitForSuccess(podName, framework.PodStartTimeout)
-
-			/*////
-						p, err := podClient.List(context.TODO(), metav1.ListOptions{})
-						framework.ExpectNotEqual(len(p.Items), 0)
-			>>>>>>> dc646be4391 (set one container as keystone and pod should succeed)
-
-						// it is expected that the pod succeeds and the job should have a completed
-						// status eventually even if the sidecar container has not terminated in the pod
-						gomega.Eventually(func() bool {
-							j, err = jobClient.Get(context.TODO(), j.Name, metav1.GetOptions{})
-							framework.ExpectNoError(err, "error while getting job")
-							framework.Logf("Job : %+v", j)
-							for _, c := range j.Status.Conditions {
-								if c.Type == batchv1.JobComplete && c.Status == v1.ConditionTrue {
-									return true
-								}
-								time.Sleep(5 * time.Second)
-							}
-							return false
-						}, time.Minute).Should(gomega.Not(gomega.BeZero()))*/
 
 		})
 
