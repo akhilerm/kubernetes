@@ -24,11 +24,12 @@ import (
 	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/kubernetes/test/e2e/framework"
 	imageutils "k8s.io/kubernetes/test/utils/image"
+	admissionapi "k8s.io/pod-security-admission/api"
 )
 
 var _ = SIGDescribe("Keystone Containers [Feature:KeystoneContainers]", func() {
 	f := framework.NewDefaultFramework("keystone-container-test")
-
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 	var podClient *framework.PodClient
 	ginkgo.BeforeEach(func() {
 		podClient = f.PodClient()
