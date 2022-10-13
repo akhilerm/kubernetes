@@ -68,7 +68,7 @@ var _ = SIGDescribe("Keystone Containers [Feature:KeystoneContainers]", func() {
 				},
 			}
 
-			podClient.Create(pod)
+			podClient.CreateSync(pod)
 
 			logReq := podClient.GetLogs(podName, &v1.PodLogOptions{
 				Container: "main-container",
