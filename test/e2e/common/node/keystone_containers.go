@@ -69,11 +69,6 @@ var _ = SIGDescribe("Keystone Containers [Feature:KeystoneContainers]", func() {
 			}
 
 			podClient.Create(pod)
-			// the pod should succeed when the main container exits
-			podClient.WaitForSuccess(podName, framework.PodStartTimeout)
-			p, err := podClient.Get(context.TODO(), podName, metav1.GetOptions{})
-			framework.ExpectNoError(err)
-			framework.Logf("PODDDDDD %+v", p)
 
 			logReq := podClient.GetLogs(podName, &v1.PodLogOptions{
 				Container: "main-container",
@@ -86,6 +81,14 @@ var _ = SIGDescribe("Keystone Containers [Feature:KeystoneContainers]", func() {
 			framework.ExpectNoError(err)
 			str := buf.String()
 			framework.Logf("LOOOOOGS %s", str)
+
+			p, err := podClient.Get(context.TODO(), podName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			framework.Logf("PODDDDDD %+v", p)
+
+			// the pod should succeed when the main container exits
+			podClient.WaitForSuccess(podName, framework.PodStartTimeout)
+
 			/*////
 						p, err := podClient.List(context.TODO(), metav1.ListOptions{})
 						framework.ExpectNotEqual(len(p.Items), 0)
