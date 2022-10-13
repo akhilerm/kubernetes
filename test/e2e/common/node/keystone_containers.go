@@ -17,79 +17,76 @@ limitations under the License.
 package node
 
 import (
-	"context"
-	"time"
-
-	batchv1 "k8s.io/api/batch/v1"
+	"fmt"
+	"github.com/onsi/ginkgo/v2"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/kubernetes/test/e2e/framework"
 	imageutils "k8s.io/kubernetes/test/utils/image"
-
-	ginkgo "github.com/onsi/ginkgo/v2"
-	"github.com/onsi/gomega"
 )
 
 var _ = SIGDescribe("Keystone Containers [Feature:KeystoneContainers]", func() {
 	f := framework.NewDefaultFramework("keystone-container-test")
 
-	ginkgo.Context("When creating a job with two containers", func() {
+	var podClient *framework.PodClient
+	ginkgo.BeforeEach(func() {
+		podClient = f.PodClient()
+	})
 
-		ginkgo.It("should complete the job once the keystone container exits successfully [Keystone]", func() {
-			jobClient := f.ClientSet.BatchV1().Jobs(f.Namespace.Name)
-			podClient := f.PodClient()
-			job := &batchv1.Job{
+	ginkgo.Context("When creating a pod with two containers", func() {
+
+		ginkgo.It("should delete the pod once the keystone container exits successfully [Keystone]", func() {
+			keystone := "Keystone"
+			podName := fmt.Sprintf("keystone-test-pod-%s", uuid.NewUUID())
+			pod := &v1.Pod{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "test-job",
+					Name: podName,
 				},
-				Spec: batchv1.JobSpec{
-					Template: v1.PodTemplateSpec{
-						Spec: v1.PodSpec{
-							NodeName:      framework.TestContext.NodeName,
-							RestartPolicy: v1.RestartPolicyOnFailure,
-							Containers: []v1.Container{
-								// the main container should exit before the sidecar with 0 exit code
-								{
-									Name:    "main-container",
-									Image:   imageutils.GetE2EImage(imageutils.BusyBox),
-									Command: []string{"sh", "-c", "sleep 1 && exit 0"},
-								},
-								{
-									Name:    "sidecar-container",
-									Image:   imageutils.GetE2EImage(imageutils.BusyBox),
-									Command: []string{"sh", "-c", "sleep infinity"},
-								},
+				Spec: v1.PodSpec{
+					RestartPolicy: v1.RestartPolicyOnFailure,
+					Containers: []v1.Container{
+						// the main container should exit before the sidecar with 0 exit code
+						{
+							Name:    "main-container",
+							Image:   imageutils.GetE2EImage(imageutils.BusyBox),
+							Command: []string{"sh", "-c", "sleep 1 && exit 0"},
+							Lifecycle: &v1.Lifecycle{
+								Type: &keystone,
 							},
+						},
+						{
+							Name:    "sidecar-container",
+							Image:   imageutils.GetE2EImage(imageutils.BusyBox),
+							Command: []string{"sh", "-c", "sleep infinity"},
 						},
 					},
 				},
 			}
 
-			j, err := jobClient.Create(context.TODO(), job, metav1.CreateOptions{})
-			framework.ExpectNoError(err, "error while creating the job")
+			podClient.Create(pod)
+			// the pod should succeed when the main container exits
+			podClient.WaitForSuccess(podName, framework.PodStartTimeout)
 
-			j, err = jobClient.Get(context.TODO(), j.Name, metav1.GetOptions{})
-			framework.Logf("Job : %+v", j)
+			/*////
+						p, err := podClient.List(context.TODO(), metav1.ListOptions{})
+						framework.ExpectNotEqual(len(p.Items), 0)
+			>>>>>>> dc646be4391 (set one container as keystone and pod should succeed)
 
-			gomega.Eventually(func() int {
-				p, _ := podClient.List(context.TODO(), metav1.ListOptions{})
-				return len(p.Items)
-			}, 2*time.Minute).Should(gomega.Not(gomega.BeZero()))
-
-			// it is expected that the pod succeeds and the job should have a completed
-			// status eventually even if the sidecar container has not terminated in the pod
-			gomega.Eventually(func() bool {
-				j, err = jobClient.Get(context.TODO(), j.Name, metav1.GetOptions{})
-				framework.ExpectNoError(err, "error while getting job")
-				framework.Logf("Job : %+v", j)
-				for _, c := range j.Status.Conditions {
-					if c.Type == batchv1.JobComplete && c.Status == v1.ConditionTrue {
-						return true
-					}
-					time.Sleep(5 * time.Second)
-				}
-				return false
-			}, time.Minute).Should(gomega.BeTrue())
+						// it is expected that the pod succeeds and the job should have a completed
+						// status eventually even if the sidecar container has not terminated in the pod
+						gomega.Eventually(func() bool {
+							j, err = jobClient.Get(context.TODO(), j.Name, metav1.GetOptions{})
+							framework.ExpectNoError(err, "error while getting job")
+							framework.Logf("Job : %+v", j)
+							for _, c := range j.Status.Conditions {
+								if c.Type == batchv1.JobComplete && c.Status == v1.ConditionTrue {
+									return true
+								}
+								time.Sleep(5 * time.Second)
+							}
+							return false
+						}, time.Minute).Should(gomega.Not(gomega.BeZero()))*/
 
 		})
 
