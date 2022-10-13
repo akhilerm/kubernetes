@@ -52,7 +52,7 @@ var _ = SIGDescribe("Keystone Containers [Feature:KeystoneContainers]", func() {
 						{
 							Name:    "main-container",
 							Image:   imageutils.GetE2EImage(imageutils.BusyBox),
-							Command: []string{"sh", "-c", "sleep 1 && exit 0"},
+							Command: []string{"sh", "-c", "sleep 10 && exit 0"},
 							Lifecycle: &v1.Lifecycle{
 								Type: &keystone,
 							},
