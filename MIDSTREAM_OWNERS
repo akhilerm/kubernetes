@@ -1,0 +1,17 @@
+# See the OWNERS docs at https://go.k8s.io/owners
+# Midstream reviewers and approvers, don't have to match those in OWNERS
+
+filters:
+  ".*":
+    reviewers:
+    - ArkaSaha30
+    - pchan
+    - AmitKumarDas
+    - akhilerm
+
+    approvers:
+    - nikhita
+    - palnabarun
+    - adisky
+    - pchan
+    - AmitKumarDas
