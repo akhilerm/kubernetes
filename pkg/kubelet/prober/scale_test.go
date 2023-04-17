@@ -186,9 +186,9 @@ func TestTCPPortExhaustion(t *testing.T) {
 
 }
 
-func newProbe(handler v1.ProbeHandler) *v1.Probe {
+func newProbe(handler v1.Handler) *v1.Probe {
 	return &v1.Probe{
-		ProbeHandler:     handler,
+		Handler:          handler,
 		TimeoutSeconds:   1,
 		PeriodSeconds:    1,
 		SuccessThreshold: 1,
@@ -248,11 +248,11 @@ type fakePod struct {
 	http          bool
 }
 
-func (f *fakePod) probeHandler() v1.ProbeHandler {
+func (f *fakePod) probeHandler() v1.Handler {
 	port := f.ln.Addr().(*net.TCPAddr).Port
-	var handler v1.ProbeHandler
+	var handler v1.Handler
 	if f.http {
-		handler = v1.ProbeHandler{
+		handler = v1.Handler{
 			HTTPGet: &v1.HTTPGetAction{
 				Scheme: v1.URISchemeHTTP,
 				Host:   "127.0.0.1",
@@ -260,7 +260,7 @@ func (f *fakePod) probeHandler() v1.ProbeHandler {
 			},
 		}
 	} else {
-		handler = v1.ProbeHandler{
+		handler = v1.Handler{
 			TCPSocket: &v1.TCPSocketAction{
 				Host: "127.0.0.1",
 				Port: intstr.FromInt(port),
