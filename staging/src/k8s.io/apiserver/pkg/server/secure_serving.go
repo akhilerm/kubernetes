@@ -48,6 +48,7 @@ func (s *SecureServingInfo) tlsConfig(stopCh <-chan struct{}) (*tls.Config, erro
 		// Can't use TLSv1.0 because of POODLE and BEAST using CBC cipher
 		// Can't use TLSv1.1 because of RC4 cipher usage
 		MinVersion: tls.VersionTLS12,
+		MaxVersion: tls.VersionTLS12,
 		// enable HTTP2 for go's 1.7 HTTP Server
 		NextProtos: []string{"h2", "http/1.1"},
 	}

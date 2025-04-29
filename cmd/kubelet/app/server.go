@@ -1189,6 +1189,7 @@ func InitializeTLS(kf *options.KubeletFlags, kc *kubeletconfiginternal.KubeletCo
 	tlsOptions := &server.TLSOptions{
 		Config: &tls.Config{
 			MinVersion:   minTLSVersion,
+			MaxVersion:   tls.VersionTLS12,
 			CipherSuites: tlsCipherSuites,
 		},
 		CertFile: kc.TLSCertFile,
